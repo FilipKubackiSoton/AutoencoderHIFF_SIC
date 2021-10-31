@@ -1,10 +1,7 @@
-import tensorflow.keras.layers as layers
-import tensorflow.keras as keras
 import tensorflow as tf
 import numpy as np
-import matplotlib.pyplot as plt
-from tensorflow.keras.layers import Dense, Input, Dropout, Flatten
-from typing import List, Tuple, Optional
+from tensorflow.keras.layers import Dense, Input #, Dropout, Flatten
+from typing import List, Optional
 
 """
 Dense transpose layer from dense layer
