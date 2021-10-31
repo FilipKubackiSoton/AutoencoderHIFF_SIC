@@ -8,7 +8,7 @@ def suplement_layers_params(architecture : List[int], layers_params : dict, laye
     for _ in range(len(architecture) - len(layers_params)):
         layers_params.append({})
     return [{**layers_default_params, **x} for x in layers_params]
-    
+
 class DenseTranspose(tf.keras.layers.Layer):
     """
     Dense transpose layer from dense layer
@@ -44,14 +44,13 @@ class Encoder(tf.keras.layers.Layer):
     widths : List[int] = [32,24], 
     isFirstInputLayer : Optional[bool] = True,
     layers_params : Optional[List[dict]] = [
-        {'l1' : 0.001, 'l2' : 0.0, 'dropout' : 0.2}, 
-        {},
-        {"dropout" : 0.5}
+        {'l1' : 0.01, 'l2' : 0.0, 'dropout' : 0.2}, 
+        {}
         ],
     layers_default_params : dict = {
-        'l1' : 0.0, 
-        'l2' : 0.0, 
-        'dropout' : 0.0, 
+        'l1' : 0.01, 
+        'l2' : 0.01, 
+        'dropout' : 0.2, 
         'activation' : "tanh",
         'kernel_initializer' : tf.keras.initializers.GlorotUniform(),
         'bias_initializer' : tf.keras.initializers.Zeros()
@@ -79,6 +78,7 @@ class Encoder(tf.keras.layers.Layer):
             # construct encoder layer 
             self.layers.append(Dense(
                     units = layer_dim,
+                    activation= layer_params_["activation"],
                     kernel_initializer= layer_params_["kernel_initializer"],
                     bias_initializer= layer_params_["bias_initializer"],
                     kernel_regularizer = tf.keras.regularizers.L1L2(
@@ -153,6 +153,7 @@ class Decoder(tf.keras.layers.Layer):
 
                 self.layers.append(Dense(
                     units = layer_dim,
+                    activation= layer_params_["activation"],
                     kernel_initializer= layer_params_["kernel_initializer"],
                     bias_initializer= layer_params_["bias_initializer"],
                     kernel_regularizer = tf.keras.regularizers.L1L2(
