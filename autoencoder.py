@@ -3,7 +3,7 @@ import numpy as np
 from tensorflow.keras.layers import Dense, Input, Dropout
 from typing import List, Optional
 
-def suplement_layers_params(architecture : List[int], layers_params : dict, layers_default_params : dict) -> dict:
+def suplement_layers_params(architecture : List[int], layers_params : List[dict], layers_default_params : dict) -> dict:
     # add empty dicionaries to layers_params to corecponds to the encoding_layers_size size
     for _ in range(len(architecture) - len(layers_params)):
         layers_params.append({})
@@ -39,17 +39,15 @@ class Encoder(tf.keras.layers.Layer):
     Encoder
 
     isFirstInputLayer - use input dimension only in Input Layer
+    Kernel and bias are initialize by fresh instances of objects
     """
     def __init__(self, 
     widths : List[int] = [32,24], 
     isFirstInputLayer : Optional[bool] = True,
-    layers_params : Optional[List[dict]] = [
-        {'l1' : 0.01, 'l2' : 0.0, 'dropout' : 0.2}, 
-        {}
-        ],
+    layers_params : Optional[List[dict]] = [{}],
     layers_default_params : dict = {
-        'l1' : 0.01, 
-        'l2' : 0.01, 
+        'l1' : 0.001, 
+        'l2' : 0.0, 
         'dropout' : 0.2, 
         'activation' : "tanh",
         'kernel_initializer' : tf.keras.initializers.GlorotUniform(),
@@ -64,8 +62,13 @@ class Encoder(tf.keras.layers.Layer):
         if not ("name" in kwargs.keys()):
             kwargs["name"] = "encoder"
 
-        layers_params = suplement_layers_params(widths, layers_params, layers_default_params)
         
+        print("kwargs default params: ", kwargs.keys())
+        print(layers_params)
+        print(layers_default_params)
+        print("end this shit")
+        layers_params = suplement_layers_params(widths, layers_params, layers_default_params)
+        print("Layer params form encoder: \n{}".format(layers_params))
         for (layer_index, layer_dim), layer_params_ in zip(
             enumerate(widths[1:] if isFirstInputLayer else widths), 
             layers_params):
@@ -79,13 +82,15 @@ class Encoder(tf.keras.layers.Layer):
             self.layers.append(Dense(
                     units = layer_dim,
                     activation= layer_params_["activation"],
-                    kernel_initializer= layer_params_["kernel_initializer"],
-                    bias_initializer= layer_params_["bias_initializer"],
+                    kernel_initializer= layer_params_["kernel_initializer"].__class__(**layer_params_["kernel_initializer"].get_config()),
+                    bias_initializer= layer_params_["bias_initializer"].__class__(**layer_params_["bias_initializer"].get_config()),
                     kernel_regularizer = tf.keras.regularizers.L1L2(
                         l1=layer_params_["l1"], 
                         l2=layer_params_["l2"]),
                     name = kwargs["name"] + "_{}".format(layer_index)))
         
+        print(layers_params)
+
     def call(self, inputs):
         x = inputs
         for layer in self.layers:
@@ -154,13 +159,14 @@ class Decoder(tf.keras.layers.Layer):
                 self.layers.append(Dense(
                     units = layer_dim,
                     activation= layer_params_["activation"],
-                    kernel_initializer= layer_params_["kernel_initializer"],
-                    bias_initializer= layer_params_["bias_initializer"],
+                    kernel_initializer= layer_params_["kernel_initializer"].__class__(**layer_params_["kernel_initializer"].get_config()),
+                    bias_initializer= layer_params_["bias_initializer"].__class__(**layer_params_["bias_initializer"].get_config()),
                     kernel_regularizer = tf.keras.regularizers.L1L2(
                         l1=layer_params_["l1"], 
                         l2=layer_params_["l2"]),
                     name = kwargs["name"] + "_{}".format(layer_index)))
     
+        print(layers_params)
     """
     Add privileged training: training = None 
     """
@@ -180,7 +186,6 @@ class Decoder(tf.keras.layers.Layer):
     """
     def get_config(self):
         pass
-
 
 class Autoencoder(tf.keras.Model):
     """
